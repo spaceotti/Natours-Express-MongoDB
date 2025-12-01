@@ -1,4 +1,5 @@
 const Tour = require('../models/tourModel');
+const APIFeatures = require('./../utils/apiFeatures');
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
@@ -10,56 +11,13 @@ exports.aliasTopTours = (req, res, next) => {
 // TOURHANDLER FUNCTIONS
 exports.getAllTours = async (req, res) => {
   try {
-    //Build query
-
-    //1. Filtering
-    const { sort, page, limit, fields, ...filters } = req.query;
-
-    //2. Advanced filtering
-    let filterStr = JSON.stringify(filters);
-    filterStr = filterStr.replace(
-      /\b(gte|gt|lte|lt)\b/g,
-      (match) => `$${match}`
-    );
-    const mongoFilter = JSON.parse(filterStr);
-
-    let query = Tour.find(mongoFilter);
-
-    //3. Sorting
-    if (sort) {
-      const sortBy = sort.split(',').join(' ');
-      query = query.sort(sortBy);
-    } else {
-      //query = query.sort('-createdAt'); // default sorting
-      query = query.sort('_id');
-    }
-
-    //4. Field limiting / projection
-    if (fields) {
-      const fieldsList = fields.split(',').join(' ');
-      query = query.select(fieldsList);
-    } else {
-      query = query.select('-__v');
-    }
-
-    //5. Pagination
-    const pageNum = parseInt(req.query.page, 10) || 1;
-    const limitNum = parseInt(req.query.limit, 10) || 100;
-    const skip = (pageNum - 1) * limitNum;
-
-    query = query.skip(skip).limit(limitNum);
-    if (page) {
-      const docCount = await Tour.countDocuments(mongoFilter);
-      if (skip >= docCount) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'Page not exist',
-        });
-      }
-    }
-
     //Execute query
-    const tours = await query;
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .project()
+      .paginate();
+    const tours = await features.query;
 
     //Send response
     res.status(200).json({
@@ -70,9 +28,9 @@ exports.getAllTours = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(404).json({
+    res.status(400).json({
       status: 'fail',
-      message: err,
+      message: err.message,
     });
   }
 };
@@ -89,9 +47,9 @@ exports.getTour = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(404).json({
+    res.status(400).json({
       status: 'fail',
-      message: err,
+      message: err.message,
     });
   }
 };
@@ -110,9 +68,9 @@ exports.updateTour = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(404).json({
+    res.status(400).json({
       status: 'fail',
-      message: err,
+      message: err.message,
     });
   }
 };
@@ -128,9 +86,9 @@ exports.createTour = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(404).json({
+    res.status(400).json({
       status: 'fail',
-      message: err,
+      message: err.message,
     });
   }
 };
@@ -140,9 +98,9 @@ exports.deleteTour = async (req, res) => {
     await Tour.findByIdAndDelete(req.params.id);
     res.status(204).end();
   } catch (err) {
-    res.status(404).json({
+    res.status(400).json({
       status: 'fail',
-      message: err,
+      message: err.message,
     });
   }
 };
