@@ -1,40 +1,62 @@
 const Tour = require('../models/tourModel');
 
-/* 
-let tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, 'utf-8')
-); */
-
-/* exports.checkId = (req, res, next, val) => {
-  if (val > tours.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
-  next();
-}; */
-
-/* exports.checkBody = (req, res, next) => {
-  console.log(req.body);
-  if (!req.body.name || !req.body.price)
-    return res.status(400).json({
-      status: 'fail',
-      message: 'Missing name or price property',
-    });
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
   next();
 };
- */
 
 // TOURHANDLER FUNCTIONS
 exports.getAllTours = async (req, res) => {
   try {
-    //Build qery
-    const { sort, page, limit, fields, ...queryObj } = req.query;
-    //const queryObj = { ...req.query };
-    //const excludeFields = ['sort', 'page', 'limit', 'fields'];
-    // console.log(req.query, queryObj);
-    const query = Tour.find(queryObj);
+    //Build query
+
+    //1. Filtering
+    const { sort, page, limit, fields, ...filters } = req.query;
+
+    //2. Advanced filtering
+    let filterStr = JSON.stringify(filters);
+    filterStr = filterStr.replace(
+      /\b(gte|gt|lte|lt)\b/g,
+      (match) => `$${match}`
+    );
+    const mongoFilter = JSON.parse(filterStr);
+
+    let query = Tour.find(mongoFilter);
+
+    //3. Sorting
+    if (sort) {
+      const sortBy = sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      //query = query.sort('-createdAt'); // default sorting
+      query = query.sort('_id');
+    }
+
+    //4. Field limiting / projection
+    if (fields) {
+      const fieldsList = fields.split(',').join(' ');
+      query = query.select(fieldsList);
+    } else {
+      query = query.select('-__v');
+    }
+
+    //5. Pagination
+    const pageNum = parseInt(req.query.page, 10) || 1;
+    const limitNum = parseInt(req.query.limit, 10) || 100;
+    const skip = (pageNum - 1) * limitNum;
+
+    query = query.skip(skip).limit(limitNum);
+    if (page) {
+      const docCount = await Tour.countDocuments(mongoFilter);
+      if (skip >= docCount) {
+        return res.status(404).json({
+          status: 'fail',
+          message: 'Page not exist',
+        });
+      }
+    }
 
     //Execute query
     const tours = await query;
