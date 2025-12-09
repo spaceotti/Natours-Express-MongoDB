@@ -4,8 +4,8 @@
   "description": "Learning node, Express and MongoDB",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "prod": "NODE_ENV=production nodemon server.js"
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
+    "prod": "cross-env NODE_ENV=production nodemon server.js"
   },
   "author": "Attila Otoltics",
   "license": "ISC",
@@ -16,5 +16,8 @@
     "morgan": "^1.10.1",
     "slugify": "^1.6.6",
     "validator": "^13.15.23"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }
