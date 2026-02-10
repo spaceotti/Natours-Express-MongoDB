@@ -33,6 +33,13 @@ build/
 .env.local
 .env.*.local
 
+# Natours custom env files
+config.env.development
+config.env.production
+config/config.env.development
+config/config.env.production
+
+
 # OS files
 .DS_Store
 Thumbs.db
