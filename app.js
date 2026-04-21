@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -10,14 +11,56 @@ const cors = require('cors');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
+//View engine setup
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
 // GLOBAL MIDDLEWARE
 //Set security HTTP headers
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+
+        baseUri: ["'self'"],
+        fontSrc: ["'self'", 'https:', 'data:', 'https://fonts.gstatic.com'],
+        scriptSrc: [
+          "'self'",
+          'https://api.mapbox.com',
+          'https://cdn.jsdelivr.net',
+        ],
+        frameSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https:',
+          'https://api.mapbox.com',
+          'https://fonts.googleapis.com',
+        ],
+        workerSrc: ["'self'", 'blob:'],
+        childSrc: ["'self'", 'blob:'],
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        formAction: ["'self'"],
+        connectSrc: [
+          "'self'",
+          'data:',
+          'blob:',
+          'https://api.mapbox.com',
+          'https://events.mapbox.com',
+        ],
+      },
+    },
+  }),
+);
 
 //Cors
 app.use(
@@ -59,7 +102,7 @@ app.use(
 );
 
 //Serving static files
-app.use(express.static(`${__dirname}/public`));
+app.use(express.static(path.join(__dirname, 'public')));
 
 //Limit requiests from same IP
 const limiter = rateLimit({
@@ -84,8 +127,11 @@ app.use((req, res, next) => {
 //app.post('/api/v1/tours', createTour);
 //app.delete('/api/v1/tours/:id', deleteTour);
 
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
+
 app.all('*', (req, res, next) => {
   /* res.status(404).json({
     status: 'fail',

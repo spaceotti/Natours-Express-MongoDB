@@ -7,6 +7,7 @@ const {
   deleteUser,
   updateMe,
   deleteMe,
+  getMe,
 } = require('./../controllers/userController');
 const {
   signup,
@@ -17,6 +18,7 @@ const {
   protect,
   restrictTo,
 } = require('./../controllers/authController');
+const { route } = require('./reviewRoutes');
 
 const router = express.Router();
 
@@ -29,6 +31,7 @@ router.patch('/resetPassword/:token', resetPassword);
 //Protected rotes
 router.use(protect);
 
+router.get('/me', getMe, getUser);
 router.patch('/updateMyPassword', updatePassword);
 router.patch('/updateMe', updateMe);
 router.delete('/deleteMe', deleteMe);

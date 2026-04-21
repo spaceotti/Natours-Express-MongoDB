@@ -25,6 +25,7 @@ const tourSchema = new Schema(
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
+      set: (val) => Math.round(val * 10) / 10,
     },
     ratingsQuantity: {
       type: Number,
@@ -84,13 +85,55 @@ const tourSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      //GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
-  tourSchemaOptions
+  tourSchemaOptions,
 );
+
+//Indexes
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
 
 //Virtual Properties
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
+});
+
+//Virtual Populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
 });
 
 //Document Middleware
@@ -108,6 +151,11 @@ tourSchema.pre('save', function (next) {
 tourSchema.pre(/^find/, function (next) {
   //tourSchema.pre('find', function (next) {
   this.find({ secretTour: { $ne: true } });
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({ path: 'guides', select: '-__v -passwordChangedAt' });
   next();
 });
 

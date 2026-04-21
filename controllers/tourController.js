@@ -1,7 +1,7 @@
 const Tour = require('../models/tourModel');
-const APIFeatures = require('./../utils/apiFeatures');
+const AppError = require('../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
-const AppError = require('./../utils/appError');
+const factory = require('./handlerFactory');
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
@@ -11,73 +11,11 @@ exports.aliasTopTours = (req, res, next) => {
 };
 
 // TOURHANDLER FUNCTIONS
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  //Execute query
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .project()
-    .paginate();
-  const tours = await features.query;
-
-  //Send response
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
-});
-
-exports.getTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findById(req.params.id);
-  // it's Tour.findOne({ _id: req.params.id });
-
-  if (!tour) return next(new AppError('No Tour found with that ID', 404));
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
-
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!tour) return next(new AppError('No Tour found with that ID', 404));
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
-
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
-
-  res.status(201).send({
-    status: 'success',
-    data: {
-      tour: newTour,
-    },
-  });
-});
-
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
-
-  if (!tour) return next(new AppError('No Tour found with that ID', 404));
-
-  res.status(204).end();
-});
+exports.getAllTours = factory.getAll(Tour);
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
+exports.createTour = factory.createOne(Tour);
+exports.updateTour = factory.updateOne(Tour);
+exports.deleteTour = factory.deleteOne(Tour);
 
 exports.getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([
@@ -149,6 +87,77 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       plan,
+    },
+  });
+});
+
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  //'/tours-within/:distance/center/:latlng/unit/:unit'
+  //in the URL /tours-within/200/center/47,17/unit/km
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in a format lat,lng.',
+        400,
+      ),
+    );
+  }
+
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in a format lat,lng.',
+        400,
+      ),
+    );
+  }
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1],
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier,
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        distance: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
     },
   });
 });
