@@ -1,10 +1,5 @@
-const mapEl = document.getElementById('map');
-
-if (mapEl) {
-  const locations = JSON.parse(mapEl.dataset.locations);
-  const mapboxToken = mapEl.dataset.mapboxToken;
-
-  mapboxgl.accessToken = mapboxToken;
+export const displayMap = (locations, token) => {
+  mapboxgl.accessToken = token;
 
   const map = new mapboxgl.Map({
     container: 'map', // container ID
@@ -50,4 +45,4 @@ if (mapEl) {
       right: 100,
     },
   });
-}
+};
