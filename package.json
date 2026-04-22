@@ -2,12 +2,11 @@
   "name": "natours",
   "version": "1.0.0",
   "description": "Learning node, Express and MongoDB",
-  "main": "app.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon server.js",
     "prod": "cross-env NODE_ENV=production nodemon server.js",
     "parcel": "parcel watch public/js/src/index.js --dist-dir public/js/bundle",
-    "build": "parcel watch public/js/src/index.js --dist-dir public/js/bundle"
+    "build": "parcel build public/js/src/index.js --dist-dir public/js/bundle"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "author": "Attila Otoltics",
