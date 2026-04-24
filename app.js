@@ -56,6 +56,8 @@ app.use(
           'blob:',
           'https://api.mapbox.com',
           'https://events.mapbox.com',
+          'ws://127.0.0.1:1234',
+          'ws://localhost:1234',
         ],
       },
     },
@@ -77,6 +79,7 @@ if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
 //Body parser
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 //Cookie parser
 app.use(cookieParser());

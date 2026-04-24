@@ -8,7 +8,7 @@ const {
   updateMe,
   deleteMe,
   getMe,
-} = require('./../controllers/userController');
+} = require('../controllers/userController');
 const {
   signup,
   login,
@@ -17,14 +17,15 @@ const {
   updatePassword,
   protect,
   restrictTo,
-} = require('./../controllers/authController');
-const { route } = require('./reviewRoutes');
+  logout,
+} = require('../controllers/authController');
 
 const router = express.Router();
 
 //Public routes
 router.post('/signup', signup);
 router.post('/login', login);
+router.get('/logout', logout);
 router.post('/forgotPassword', forgotPassword);
 router.patch('/resetPassword/:token', resetPassword);
 

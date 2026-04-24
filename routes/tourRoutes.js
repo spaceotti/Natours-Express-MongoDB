@@ -10,8 +10,8 @@ const {
   getMonthlyPlan,
   getToursWithin,
   getDistances,
-} = require('./../controllers/tourController');
-const { protect, restrictTo } = require('./../controllers/authController');
+} = require('../controllers/tourController');
+const { protect, restrictTo } = require('../controllers/authController');
 const reviewRouter = require('./reviewRoutes');
 
 const router = express.Router();
