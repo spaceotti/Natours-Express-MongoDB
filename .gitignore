@@ -63,5 +63,6 @@ temp/
 # Logs from PM2 (falls später benutzt)
 .pmx
 
-# Parcel
+# Bundler
 .parcel-cache/
+public/js/bundle/
