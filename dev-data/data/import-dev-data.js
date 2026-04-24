@@ -1,7 +1,8 @@
 const fs = require('fs');
 const dotenv = require('dotenv');
+
 dotenv.config({ path: `${__dirname}/../../config/config.env.development` });
-const connectDB = require('./../../config/dbConnect');
+const connectDB = require('../../config/dbConnect');
 const Tour = require('../../models/tourModel');
 const User = require('../../models/userModel');
 const Review = require('../../models/reviewModel');

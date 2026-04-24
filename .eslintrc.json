@@ -1,6 +1,18 @@
 {
-  "extends": ["airbnb", "prettier", "plugin:node/recommended"],
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "settings": {
+    "node": {
+      "version": ">=18.0.0"
+    }
+  },
+  "extends": ["airbnb-base", "prettier", "plugin:node/recommended"],
   "plugins": ["prettier"],
+  "parserOptions": {
+    "ecmaVersion": 2021
+  },
   "rules": {
     "prettier/prettier": "error",
     "spaced-comment": "off",
@@ -14,6 +26,25 @@
     "no-underscore-dangle": "off",
     "class-methods-use-this": "off",
     "prefer-destructuring": ["error", { "object": true, "array": false }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "req|res|next|val" }]
-  }
+    "no-unused-vars": ["error", { "argsIgnorePattern": "req|res|next|val" }],
+    "node/no-unsupported-features/es-syntax": "off"
+  },
+  "overrides": [
+    {
+      "files": ["src/js/**/*.js"],
+      "env": {
+        "browser": true,
+        "node": false,
+        "es2021": true
+      },
+      "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": "latest"
+      },
+      "rules": {
+        "node/no-unsupported-features/es-syntax": "off",
+        "import/prefer-default-export": "off"
+      }
+    }
+  ]
 }

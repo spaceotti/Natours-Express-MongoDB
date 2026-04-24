@@ -1,3 +1,5 @@
+/* global mapboxgl */
+
 export const displayMap = (locations, token) => {
   mapboxgl.accessToken = token;
 

@@ -5,11 +5,17 @@ class APIFeatures {
   }
 
   filter() {
-    const { sort, page, limit, fields, ...filters } = this.queryStr;
+    const filters = { ...this.queryStr };
+
+    delete filters.sort;
+    delete filters.page;
+    delete filters.limit;
+    delete filters.fields;
+
     let filterStr = JSON.stringify(filters);
     filterStr = filterStr.replace(
       /\b(gte|gt|lte|lt)\b/g,
-      (match) => `$${match}`
+      (match) => `$${match}`,
     );
     const mongoFilter = JSON.parse(filterStr);
     this.query = this.query.find(mongoFilter);
