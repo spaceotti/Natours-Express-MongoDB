@@ -64,4 +64,4 @@ temp/
 .pmx
 
 # Parcel
-.parcel-cache
+.parcel-cache/
